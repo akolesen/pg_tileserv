@@ -14,6 +14,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+    "syscall"
 	"time"
 
 	// REST routing
@@ -460,7 +461,10 @@ func (fn tileAppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.WithField("src", e.SrcErr.Error())
 			log.Error(err)
 			http.Error(w, e.Error(), e.HTTPCode)
-		} else {
+		} else if errors.Is(err, syscall.EPIPE) {
+			log.Warn(err)
+			http.Error(w, err.Error(), 499)
+        } else {
 			log.Error(err)
 			http.Error(w, err.Error(), 500)
 		}
